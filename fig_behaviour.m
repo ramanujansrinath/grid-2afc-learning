@@ -1,4 +1,5 @@
 clear; close all; clc
+addpath('dep')
 
 %% load a file
 dataLoc = '~/Downloads/v4-7a';
