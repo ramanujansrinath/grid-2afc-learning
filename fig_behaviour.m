@@ -4,7 +4,7 @@ addpath('dep')
 %% load a file
 dataLoc = '~/Downloads/v4-7a';
 load('data/exptRecord.mat','exptRecord')
-load([dataLoc '/' exptRecord(55).name '_dense.mat'])
+load([dataLoc '/' exptRecord(9).name '_dense.mat'])
 plotPsychometric(params)
 
 %%
