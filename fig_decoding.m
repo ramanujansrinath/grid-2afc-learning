@@ -1,8 +1,11 @@
 %% prelim
 load('data/exptRecord.mat')
+sessIds = [20,23,26,27,28,31,35,39,42,48,49,50,51,52,54,55,56];
+exptRecord = exptRecord(sessIds);
 exptRecord = exptRecord([exptRecord.nCorrect]>100);
-exptRecord = exptRecord(cellfun(@(x) length(x)==25,{exptRecord.stimOpp_num}) & cellfun(@(x) length(x)==25,{exptRecord.stimRF_num}));
+% exptRecord = exptRecord(cellfun(@(x) length(x)==25,{exptRecord.stimOpp_num}) & cellfun(@(x) length(x)==25,{exptRecord.stimRF_num}));
 % exptRecord = exptRecord(randi(length(exptRecord)));
+
 for ii=1:length(exptRecord)
     disp('++++++++++++++++++++++++++++++++++++')
     disp([num2str(ii) ': ' exptRecord(ii).name])
@@ -42,7 +45,15 @@ legend('Location','southeast')
 
 %%
 function r_sess = prelim5_grid_2afc(params,resp,resp_base)
-    colorDiff = (mod([params.stimRF_num],5)-mod([params.stimOpp_num],5)) == 0;
+    diagStimNum = [5 9 13 17 21];
+    diagTrials = ismember([params.stimRF_num],diagStimNum) & ismember([params.stimOpp_num],diagStimNum);
+    colorTrials = (mod([params.stimRF_num],5)-mod([params.stimOpp_num],5)) == 0;
+    shapeTrials = ~colorTrials;
+    colorTrials = colorTrials & ~diagTrials; % & ~offDiagTrials;
+    shapeTrials = shapeTrials & ~diagTrials; % & ~offDiagTrials;
+    
+    colorDiff = colorTrials;
+    % colorDiff = (mod([params.stimRF_num],5)-mod([params.stimOpp_num],5)) == 0;
     eid = [3*ones(1,32) ones(1,64) 3*ones(1,32)];
     resp = resp(:,eid==1);
     resp_base = resp_base(:,eid==1);
@@ -65,8 +76,8 @@ function r_sess = prelim5_grid_2afc(params,resp,resp_base)
     r = get_dec(resp_red,colIds,resp_red,shpIds,resp_red,choices); r_sess([5 4 6]) = r;
     
     % shape task
-    r = get_dec(resp_red(~colorDiff,:),shpIds(~colorDiff),resp_red(~colorDiff,:),colIds(~colorDiff),resp_red(~colorDiff,:),choices(~colorDiff)); r_sess([7 8 9]) = r;
-    r = get_dec(resp_red(~colorDiff,:),colIds(~colorDiff),resp_red(~colorDiff,:),shpIds(~colorDiff),resp_red(~colorDiff,:),choices(~colorDiff)); r_sess([11 10 12]) = r;
+    r = get_dec(resp_red(shapeTrials,:),shpIds(shapeTrials),resp_red(shapeTrials,:),colIds(shapeTrials),resp_red(shapeTrials,:),choices(shapeTrials)); r_sess([7 8 9]) = r;
+    r = get_dec(resp_red(shapeTrials,:),colIds(shapeTrials),resp_red(shapeTrials,:),shpIds(shapeTrials),resp_red(shapeTrials,:),choices(shapeTrials)); r_sess([11 10 12]) = r;
 
     % color task
     r = get_dec(resp_red(colorDiff,:),shpIds(colorDiff),resp_red(colorDiff,:),colIds(colorDiff),resp_red(colorDiff,:),choices(colorDiff)); r_sess([13 14 15]) = r;
