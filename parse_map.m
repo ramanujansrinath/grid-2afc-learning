@@ -79,6 +79,10 @@ end
 save('data/mapRecord.mat','mapRecord')
 % mapRecord = mapRecord([mapRecord.nTrials]>100);
 
+%%
+load([dataLoc '/' mapRecord(26).name '_rf.mat'],'rfv4')
+rfmap_plot(rfv4)
+
 %% helpers
 function rfv4 = rfmap_save(params,resp)    
     eid = [3*ones(1,32) ones(1,64) 3*ones(1,32)];
@@ -104,7 +108,7 @@ function rfv4 = rfmap_save(params,resp)
 end
 
 function rfmap_plot(rfv4)
-    pos = [280 -130 280];
+    pos = [375 -200 400];
     % pos = [-274 -198 340];
     stimPos = [pos(1)-pos(3)/2 pos(2)-pos(3)/2 pos(3) pos(3)];
 
@@ -155,8 +159,8 @@ function mapRecord = crawlForFiles
     rootDir = '/Volumes/colada/Ram/data/neural/v4-7a';
     dirs = dir([rootDir '/24*']);
     for ii=1:length(dirs)
-        files_grid = dir([rootDir '/' dirs(ii).name '/*map*nev*']);
-        filelist = [filelist cellfun(@(x) strrep([rootDir '/' dirs(ii).name '/' x],'.nev',''),{files_grid.name},'UniformOutput',false)];
+        files_grid = dir([rootDir '/' dirs(ii).name '/*map*trial*']);
+        filelist = [filelist cellfun(@(x) strrep([rootDir '/' dirs(ii).name '/' x],'_trialinfo.mat',''),{files_grid.name},'UniformOutput',false)];
         % if length(files_nev) ~= length(files_grid)
         %     for jj=1:length(files_nev)
         %         files_nev.name(jj)
