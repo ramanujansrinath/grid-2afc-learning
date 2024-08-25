@@ -18,20 +18,34 @@ function exptRecord = parse_all_records(exptRecord,dataLoc)
             load([exptRecord(ii).path '_trialinfo'],'trials')
             load(exptRecord(ii).path)
             behav = [behav.trialData];
+            % behIds = [behav.id]';
+            % trialIds = cellfun(@(x) str2double(x.id),trials);
         
             clearvars params resp resp_base
             trialCount = 0;
-            for tt=1:length(trials)
-                if trials{tt}.selected > 0
+            for tt=1:length(behav)
+                if behav(tt).behav.selectedStim > 0
                     trialCount = trialCount + 1;
-                    params(trialCount).id = trials{tt}.id;
-                    params(trialCount).stimRF_set = trials{tt}.stimRF_set;
-                    params(trialCount).stimRF_num = trials{tt}.stimRF_num;
-                    params(trialCount).stimOpp_set = trials{tt}.stimOpp_set;
-                    params(trialCount).stimOpp_num = trials{tt}.stimOpp_num;
-                    params(trialCount).correct = trials{tt}.correct;
-                    params(trialCount).selected = trials{tt}.selected;
+                    params(trialCount).id = behav(tt).id;
+                    params(trialCount).stimRF_set = behav(tt).stimRF.set;
+                    params(trialCount).stimRF_num = behav(tt).stimRF.num;
+                    params(trialCount).stimOpp_set = behav(tt).stimOpp.set;
+                    params(trialCount).stimOpp_num = behav(tt).stimOpp.num;
+                    params(trialCount).correct = behav(tt).behav.correctStim;
+                    params(trialCount).selected = behav(tt).behav.selectedStim;
+                    if isfield(behav(tt),'rule')
+                        params(trialCount).rule = behav(tt).rule;
+                    else
+                        params(trialCount).rule = nan;
+                    end
     
+                    % the stim start time should ideally be relative to the
+                    % trial start time but I messed up in the new behav
+                    % based pipeline code
+                    if trials{tt}.stimstart>trials{tt}.startTime
+                        trials{tt}.stimstart = trials{tt}.stimstart-trials{tt}.startTime;
+                    end
+
                     params(trialCount).spikes = trials{tt}.spikes(:,[1 3]);
                     params(trialCount).spikes(:,2) = params(trialCount).spikes(:,2)-trials{tt}.stimstart;
         
@@ -69,6 +83,7 @@ function exptRecord = parse_all_records(exptRecord,dataLoc)
         exptRecord(ii).stimRF_num = unique([params.stimRF_num]);
         exptRecord(ii).stimOpp_set = unique([params.stimOpp_set]);
         exptRecord(ii).stimOpp_num = unique([params.stimOpp_num]);
+        exptRecord(ii).rules = unique([params.rule]);
     end
     
     save('data/exptRecord.mat','exptRecord')
