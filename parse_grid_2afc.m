@@ -14,17 +14,31 @@ function exptRecord = parse_all_records(exptRecord,dataLoc)
         exptName = exptRecord(ii).path(1+find(exptRecord(ii).path=='/',1,'last'):end);
         disp(exptName)
         if ~exist([dataLoc '/' exptName '_dense.mat'],'file')
+            if ~exist([exptRecord(ii).path '_trialinfo.mat'],'file')
+                disp('... remote file missing; skipping')
+                continue
+            end
             disp('... getting remote')
             load([exptRecord(ii).path '_trialinfo'],'trials')
             load(exptRecord(ii).path)
             behav = [behav.trialData];
             % behIds = [behav.id]';
             % trialIds = cellfun(@(x) str2double(x.id),trials);
+            fprintf('... behav: %d, trials: %d\n',length(behav),length(trials))
+            if length(behav)~=length(trials)
+                disp('... ... lengths don''t match; skipping.')
+                continue
+            end
         
             clearvars params resp resp_base
-            trialCount = 0;
+            trialCount = 0; missedTrialCount = 0;
             for tt=1:length(behav)
                 if behav(tt).behav.selectedStim > 0
+                    if isempty(trials{tt}.stimstart)
+                        missedTrialCount = missedTrialCount+1;
+                        continue; % skip trials which don't have start times;
+                        % i don't know why this is happening.
+                    end
                     trialCount = trialCount + 1;
                     params(trialCount).id = behav(tt).id;
                     params(trialCount).stimRF_set = behav(tt).stimRF.set;
@@ -69,7 +83,7 @@ function exptRecord = parse_all_records(exptRecord,dataLoc)
                     resp_base(trialCount,:) = params(trialCount).resp_base;
                 end
             end
-    
+            disp(['... missed ' num2str(missedTrialCount) ' trials.'])
             save([exptRecord(ii).path '_dense'],'params','resp','resp_base')
             save([dataLoc '/' exptName '_dense.mat'],'params','resp','resp_base')
         else
@@ -83,7 +97,7 @@ function exptRecord = parse_all_records(exptRecord,dataLoc)
         exptRecord(ii).stimRF_num = unique([params.stimRF_num]);
         exptRecord(ii).stimOpp_set = unique([params.stimOpp_set]);
         exptRecord(ii).stimOpp_num = unique([params.stimOpp_num]);
-        exptRecord(ii).rules = unique([params.rule]);
+        % exptRecord(ii).rules = unique([params.rule]);
     end
     
     save('data/exptRecord.mat','exptRecord')
