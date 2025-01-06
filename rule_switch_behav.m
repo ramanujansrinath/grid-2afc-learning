@@ -1,7 +1,7 @@
 load('data/exptRecord.mat')
 exptRecord = exptRecord([exptRecord.nCorrect]>100);
 exptRecord = exptRecord(cellfun(@(x) length(x)==25,{exptRecord.stimOpp_num}) & cellfun(@(x) length(x)==25,{exptRecord.stimRF_num}));
-load(['~/Downloads/v4-7a/' exptRecord(50).name '_dense.mat'],'params')
+load(['~/Downloads/v4-7a/' exptRecord(46).name '_dense.mat'])
 
 % rule indicated by monkeys actions:
 guesses = guess_rule(params);
