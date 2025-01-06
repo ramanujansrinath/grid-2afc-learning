@@ -2,8 +2,9 @@ clc; clear; close all
 
 addpath('dep')
 mapRecord = crawlForFiles;
-dataLoc = '~/Downloads/v4-7a';
-mapRecord(15) = [];
+dataLoc = 'data/dense';
+% mapRecord(15) = [];
+% mapRecord(30:37) = [];
 
 %% get/parse all data
 for ii=1:length(mapRecord)
@@ -13,16 +14,24 @@ for ii=1:length(mapRecord)
         disp('... getting remote')
         load([mapRecord(ii).path '_trialinfo'])
         load(mapRecord(ii).path)
+        behav = [behav.trialData];
         
         clearvars params resp resp_base
         for tt=1:length(trials)
-            if trials{tt}.good
-                params(tt).set = trials{tt}.set;
-                params(tt).num = trials{tt}.num;
-                params(tt).x = trials{tt}.x;
-                params(tt).y = trials{tt}.y;
-                params(tt).s = trials{tt}.s;
-                params(tt).good = trials{tt}.good;
+            if behav(tt).good
+                % fix the parse (human) pipeline error where stimstart was
+                % referenced to exptstart not trialstart
+                if trials{tt}.stimstart > trials{tt}.startTime
+                    trials{tt}.stimstart = trials{tt}.stimstart - trials{tt}.startTime;
+                    trials{tt}.stimend = trials{tt}.stimend - trials{tt}.startTime;
+                end
+
+                params(tt).set = behav(tt).stim.set;
+                params(tt).num = behav(tt).stim.num;
+                params(tt).x = behav(tt).stim.x;
+                params(tt).y = behav(tt).stim.y;
+                params(tt).s = behav(tt).stim.s;
+                params(tt).good = behav(tt).good;
                 params(tt).spikes = trials{tt}.spikes(:,[1 3]);
                 params(tt).spikes(:,2) = params(tt).spikes(:,2)-trials{tt}.stimstart;
     
@@ -65,13 +74,13 @@ for ii=1:length(mapRecord)
     
     % if actual rf map expt, save the RFs
     if length(unique([params.x]))>1
-        if ~exist([dataLoc '/' exptName '_rf.mat'],'file')
+        % if ~exist([dataLoc '/' exptName '_rf.mat'],'file')
             disp('... saving rf')
             rfv4 = rfmap_save(params,resp);
             save([dataLoc '/' exptName '_rf.mat'],'rfv4')
-        else
-            load([dataLoc '/' exptName '_rf.mat'],'rfv4')
-        end
+        % else
+        %     load([dataLoc '/' exptName '_rf.mat'],'rfv4')
+        % end
         % rfmap_plot(rfv4)
         mapRecord(ii).rfPos = rfv4.pos;
     end
@@ -80,12 +89,16 @@ save('data/mapRecord.mat','mapRecord')
 % mapRecord = mapRecord([mapRecord.nTrials]>100);
 
 %%
-load([dataLoc '/' mapRecord(26).name '_rf.mat'],'rfv4')
+close all
+exptIdx = 1;
+load([dataLoc '/' mapRecord(exptIdx).name '_rf.mat'],'rfv4')
+% load([dataLoc '/' mapRecord(exptIdx).name '_dense.mat'])
 rfmap_plot(rfv4)
 
 %% helpers
 function rfv4 = rfmap_save(params,resp)    
-    eid = [3*ones(1,32) ones(1,64) 3*ones(1,32)];
+    eid = [3*ones(1,32) ones(1,64) 3*ones(1,32)]; % zippy
+    eid = [ones(1,32) 3*ones(1,64) ones(1,32)]; % helium
     badTrials = cellfun(@isempty,{params.set});
     resp(badTrials,:) = [];
     params(badTrials) = [];
@@ -108,7 +121,7 @@ function rfv4 = rfmap_save(params,resp)
 end
 
 function rfmap_plot(rfv4)
-    pos = [375 -200 400];
+    pos = [-200 -200 400];
     % pos = [-274 -198 340];
     stimPos = [pos(1)-pos(3)/2 pos(2)-pos(3)/2 pos(3) pos(3)];
 
@@ -120,35 +133,34 @@ function rfmap_plot(rfv4)
         axis(ha(ii),'image','off');
         set(ha(ii),'ydir','normal');
         plot(0,0,'w.','parent',ha(ii),'markersize',10);
-        rectangle('Position',stimPos,'LineWidth',2,'EdgeColor','w','parent',ha(ii))
+        % rectangle('Position',stimPos,'LineWidth',2,'EdgeColor','w','parent',ha(ii))
 %         drawellipse(ha(ii),'center',rfv4.staFit_beta(ii,[2 4]),'SemiAxes',abs(rfv4.staFit_beta(ii,[3 5])/2),'Color','k','facealpha',0,'InteractionsAllowed','none','selected',false,'linewidth',1);
     end
     
     figure('color','w','pos',[909,350,254,445]);
-    ha = tight_subplot(2,1); axes(ha(1))
+    ha = [subplot(211) subplot(212)]; axes(ha(1))
     imagesc(rfv4.x(:),rfv4.y(:),mean(rfv4.sta,3));
     axis image; set(gca,'ydir','normal'); hold on;
     plot(0,0,'k.','parent',gca,'markersize',10);
     rectangle('Position',stimPos,'LineWidth',2,'EdgeColor','w')
-    axis([-200 960 -540 200])
+    axis([-730 730 -640 140])
     title(['V4: pix ' num2str(round(rfv4.pos))])
     
     axes(ha(2)); 
- 
-    % clf; hold on;
+    hold(ha(2),'on');
     for ii=1:64
-        plot(gca,rfv4.staFit_beta(ii,2),rfv4.staFit_beta(ii,4),'.','markersize',15,'color',[0.2 0.9 0.3]*0.8);
-        drawellipse(gca,'center',rfv4.staFit_beta(ii,[2 4]),'SemiAxes',abs(rfv4.staFit_beta(ii,[3 5])/2),'Color',[0.2 0.9 0.3],'facealpha',0,'InteractionsAllowed','none','selected',false,'linewidth',1,'edgealpha',0.5);
+        plot(ha(2),rfv4.staFit_beta(ii,2),rfv4.staFit_beta(ii,4),'.','markersize',15,'color',[0.2 0.9 0.3]*0.8);
+        drawellipse(ha(2),'center',rfv4.staFit_beta(ii,[2 4]),'SemiAxes',abs(rfv4.staFit_beta(ii,[3 5])/2),'Color',[0.2 0.9 0.3],'facealpha',0,'InteractionsAllowed','none','selected',false,'linewidth',1,'edgealpha',0.5);
     end
-    plot(0,0,'r.','markersize',20);
-    rectangle('Position',stimPos,'LineWidth',2,'EdgeColor','k')
-    axis([-200 960 -540 200])
+    plot(ha(2),0,0,'r.','markersize',20);
+    rectangle('Position',stimPos,'LineWidth',2,'EdgeColor','k','parent',ha(2))
+    axis(ha(2),[-730 730 -640 140])
    
     rectangle('Position',[rfv4.pos(1)-rfv4.pos(3) rfv4.pos(2)-rfv4.pos(3) rfv4.pos(3)*2 rfv4.pos(3)*2],'LineWidth',2,'EdgeColor','b')
     
     % get 5 degree ticks
     ticks = 5*(200./rad2deg(atan((200*(609.6/sqrt(1920^2 + 1080^2)))/540)));
-    fixPlot(gca,[-200 800],[-500 200],'','',-4*ticks:ticks:ticks*4,-4*ticks:ticks:ticks*4)
+    fixPlot(gca,[-730 730],[-640 140],'','',-4*ticks:ticks:ticks*4,-4*ticks:ticks:ticks*4)
     axis normal
     axis equal
 end
@@ -156,7 +168,7 @@ end
 
 function mapRecord = crawlForFiles
     filelist = cell(1);
-    rootDir = '/Volumes/colada/Ram/data/neural/v4-7a';
+    rootDir = '/mnt/colada_share/Ram/data/neural/v4-7a';
     dirs = dir([rootDir '/24*']);
     for ii=1:length(dirs)
         files_grid = dir([rootDir '/' dirs(ii).name '/*map*trial*']);

@@ -1,7 +1,8 @@
 clc; clear; close all
 
-rawLoc = '/Volumes/colada/Ram/data/neural/v4-7a';
-dataLoc = '~/Downloads/v4-7a';
+% rawLoc = '/Volumes/colada/Ram/data/neural/v4-7a';
+rawLoc = '/mnt/colada_share/Ram/data/neural/v4-7a';
+dataLoc = 'data/dense';
 
 exptRecord = crawlForFiles(rawLoc,dataLoc);
 exptRecord = parse_all_records(exptRecord,dataLoc);
@@ -12,7 +13,7 @@ function exptRecord = parse_all_records(exptRecord,dataLoc)
     
     for ii=1:length(exptRecord)
         exptName = exptRecord(ii).path(1+find(exptRecord(ii).path=='/',1,'last'):end);
-        disp(exptName)
+        disp([num2str(ii) ': ' exptName])
         if ~exist([dataLoc '/' exptName '_dense.mat'],'file')
             if ~exist([exptRecord(ii).path '_trialinfo.mat'],'file')
                 disp('... remote file missing; skipping')
@@ -84,7 +85,7 @@ function exptRecord = parse_all_records(exptRecord,dataLoc)
                 end
             end
             disp(['... missed ' num2str(missedTrialCount) ' trials.'])
-            save([exptRecord(ii).path '_dense'],'params','resp','resp_base')
+            % save([exptRecord(ii).path '_dense'],'params','resp','resp_base')
             save([dataLoc '/' exptName '_dense.mat'],'params','resp','resp_base')
         else
             load([dataLoc '/' exptName '_dense.mat'],'params')
@@ -110,7 +111,7 @@ function exptRecord = crawlForFiles(rawLoc,dataLoc)
         warning('Colada offline or not mounted.')
     end
     for ii=1:length(dirs)
-        files_grid = dir([rawLoc '/' dirs(ii).name '/*grid*nev*']);
+        files_grid = dir([rawLoc '/' dirs(ii).name '/*helium*grid*nev*']);
         filelist = [filelist cellfun(@(x) strrep([rawLoc '/' dirs(ii).name '/' x],'.nev',''),{files_grid.name},'UniformOutput',false)];
         % if length(files_nev) ~= length(files_grid)
         %     for jj=1:length(files_nev)

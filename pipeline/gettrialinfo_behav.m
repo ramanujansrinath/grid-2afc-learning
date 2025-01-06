@@ -19,7 +19,7 @@ function trials = gettrialinfo_behav(nev,analogSignals,behav,allCodes)
     starts = find(codes(:,1) == START_TRIAL);
     ends = find(codes(:,1) == END_TRIAL);
     
-    [startTimes,endTimes,stimDurs] = inferStartsEnds_behav(starts,codes,behav);
+    [startTimes,endTimes,stimDurs] = inferStartsEnds_behav(starts,codes,behav,allCodes);
     
     trials = cell(length(behav),1);
     for ii = 1:length(behav)
@@ -60,7 +60,7 @@ function trials = gettrialinfo_behav(nev,analogSignals,behav,allCodes)
     end
 end
 
-function [startTimes,endTimes,stimDur] = inferStartsEnds_behav(starts,codes,behav)
+function [startTimes,endTimes,stimDur] = inferStartsEnds_behav(starts,codes,behav,allCodes)
     id_str = int2str([behav.id]');
     id_str(:,1:8) = ''; % remove date
     id(:,1) = str2num(id_str(:,1:2))*60*60*1000;
@@ -71,17 +71,37 @@ function [startTimes,endTimes,stimDur] = inferStartsEnds_behav(starts,codes,beha
     id = id-id(1);
     
     trialStartTime = codes(starts(1),2) + id/1000;
-    trialDur = [behav.behav]; trialDur = [trialDur.trialTime];
-    trialEndTime = trialStartTime + trialDur';
     
+    % for grid_2afc
+    if isfield(behav,'behav')
+        trialDur = [behav.behav]; 
+        trialDur = [trialDur.trialTime]';
+
+        stimDur = [behav.stim]; 
+        stimDur = [stimDur.on];
+    else
+        trialDur = nan(length(allCodes),1);
+        stimDur = nan(length(allCodes),1);
+        for ii=1:length(allCodes)
+            trial_st = allCodes{ii}.codes(allCodes{ii}.codes(:,1)==1,2);
+            trial_end = allCodes{ii}.codes(allCodes{ii}.codes(:,1)==255,2);
+            trialDur(ii) = trial_end-trial_st;
+
+            stim_on = allCodes{ii}.codes(allCodes{ii}.codes(:,1)==10,2);
+            stim_off = allCodes{ii}.codes(allCodes{ii}.codes(:,1)==40,2);
+            if ~isempty(stim_off) && ~isempty(stim_on)
+                stimDur(ii) = stim_off-stim_on;
+            end
+        end
+    end
+    trialEndTime = trialStartTime + trialDur;
+
     startTimes = trialStartTime;
     endTimes = trialEndTime;
-
-    stimDur = [behav.stim]; stimDur = [stimDur.on];
 end
 
 function [stimOn,stimOff] = getStimTimesFromDiode(diodeT,diodeY)
-    diodeThreshold = 150;
+    diodeThreshold = 50;
     diodeY(diodeY<diodeThreshold) = 0;
     stimOn = diodeT(find(diodeY>0,1));
     stimOff = diodeT(find(diodeY>0,1,'last'));
