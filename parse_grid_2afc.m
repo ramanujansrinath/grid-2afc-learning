@@ -1,8 +1,7 @@
 clc; clear; close all
 
-% rawLoc = '/Volumes/colada/Ram/data/neural/v4-7a';
-rawLoc = '/mnt/colada_share/Ram/data/neural/v4-7a';
-dataLoc = 'data/dense';
+rawLoc = '/Volumes/colada/Ram/data/neural/v4-7a';
+dataLoc = '~/Downloads/v4-7a';
 
 exptRecord = crawlForFiles(rawLoc,dataLoc);
 exptRecord = parse_all_records(exptRecord,dataLoc);
@@ -111,7 +110,7 @@ function exptRecord = crawlForFiles(rawLoc,dataLoc)
         warning('Colada offline or not mounted.')
     end
     for ii=1:length(dirs)
-        files_grid = dir([rawLoc '/' dirs(ii).name '/*helium*grid*nev*']);
+        files_grid = dir([rawLoc '/' dirs(ii).name '/*grid*nev*']);
         filelist = [filelist cellfun(@(x) strrep([rawLoc '/' dirs(ii).name '/' x],'.nev',''),{files_grid.name},'UniformOutput',false)];
         % if length(files_nev) ~= length(files_grid)
         %     for jj=1:length(files_nev)

@@ -2,8 +2,8 @@ clc; clear; close all
 
 addpath('dep')
 mapRecord = crawlForFiles;
-dataLoc = 'data/dense';
-% mapRecord(15) = [];
+dataLoc = '~/Downloads/v4-7a';
+mapRecord(15) = [];
 % mapRecord(30:37) = [];
 
 %% get/parse all data
@@ -74,13 +74,13 @@ for ii=1:length(mapRecord)
     
     % if actual rf map expt, save the RFs
     if length(unique([params.x]))>1
-        % if ~exist([dataLoc '/' exptName '_rf.mat'],'file')
+        if ~exist([dataLoc '/' exptName '_rf.mat'],'file')
             disp('... saving rf')
             rfv4 = rfmap_save(params,resp);
             save([dataLoc '/' exptName '_rf.mat'],'rfv4')
-        % else
-        %     load([dataLoc '/' exptName '_rf.mat'],'rfv4')
-        % end
+        else
+            load([dataLoc '/' exptName '_rf.mat'],'rfv4')
+        end
         % rfmap_plot(rfv4)
         mapRecord(ii).rfPos = rfv4.pos;
     end
@@ -90,7 +90,7 @@ save('data/mapRecord.mat','mapRecord')
 
 %%
 close all
-exptIdx = 1;
+exptIdx = 38;
 load([dataLoc '/' mapRecord(exptIdx).name '_rf.mat'],'rfv4')
 % load([dataLoc '/' mapRecord(exptIdx).name '_dense.mat'])
 rfmap_plot(rfv4)
@@ -168,7 +168,7 @@ end
 
 function mapRecord = crawlForFiles
     filelist = cell(1);
-    rootDir = '/mnt/colada_share/Ram/data/neural/v4-7a';
+    rootDir = '/Volumes/colada/Ram/data/neural/v4-7a';
     dirs = dir([rootDir '/24*']);
     for ii=1:length(dirs)
         files_grid = dir([rootDir '/' dirs(ii).name '/*map*trial*']);

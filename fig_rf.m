@@ -3,7 +3,7 @@ clc; clear; close all;
 %% load a file
 dataLoc = '~/Downloads/v4-7a';
 load('data/mapRecord.mat','mapRecord')
-load([dataLoc '/' mapRecord(18).name '_rf.mat'])
+load([dataLoc '/' mapRecord(21).name '_rf.mat'])
 
 %%
 % zippy
