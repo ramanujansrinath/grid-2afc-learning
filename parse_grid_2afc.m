@@ -97,7 +97,11 @@ function exptRecord = parse_all_records(exptRecord,dataLoc)
         exptRecord(ii).stimRF_num = unique([params.stimRF_num]);
         exptRecord(ii).stimOpp_set = unique([params.stimOpp_set]);
         exptRecord(ii).stimOpp_num = unique([params.stimOpp_num]);
-        % exptRecord(ii).rules = unique([params.rule]);
+        if ~isfield(params(1),'rule')
+            exptRecord(ii).rules = NaN;
+        else
+            exptRecord(ii).rules = unique([params.rule]);
+        end
     end
     
     save('data/exptRecord.mat','exptRecord')
@@ -105,7 +109,7 @@ end
 
 function exptRecord = crawlForFiles(rawLoc,dataLoc)
     filelist = cell(1);
-    dirs = dir([rawLoc '/24*']);
+    dirs = dir([rawLoc '/2*']);
     if isempty(dirs)
         warning('Colada offline or not mounted.')
     end
