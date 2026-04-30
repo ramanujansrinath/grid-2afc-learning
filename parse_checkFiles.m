@@ -3,7 +3,7 @@ clc; clear; close all
 rawLoc = '/Volumes/colada/Ram/data/neural/v4-7a';
 dataLoc = '~/Downloads/v4-7a';
 
-dirs = dir([rawLoc '/24*']);
+dirs = dir([rawLoc '/2*']);
 if isempty(dirs)
     warning('Colada offline or not mounted.')
     return;

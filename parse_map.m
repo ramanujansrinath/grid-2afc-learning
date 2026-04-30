@@ -169,9 +169,11 @@ end
 function mapRecord = crawlForFiles
     filelist = cell(1);
     rootDir = '/Volumes/colada/Ram/data/neural/v4-7a';
-    dirs = dir([rootDir '/24*']);
+    dirs1 = dir([rootDir '/24*']);
+    dirs2 = dir([rootDir '/25*']);
+    dirs = [dirs1; dirs2];
     for ii=1:length(dirs)
-        files_grid = dir([rootDir '/' dirs(ii).name '/*map*trial*']);
+        files_grid = dir([rootDir '/' dirs(ii).name '/*map_*trial*']);
         filelist = [filelist cellfun(@(x) strrep([rootDir '/' dirs(ii).name '/' x],'_trialinfo.mat',''),{files_grid.name},'UniformOutput',false)];
         % if length(files_nev) ~= length(files_grid)
         %     for jj=1:length(files_nev)
